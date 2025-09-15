@@ -4,6 +4,7 @@
 .venv/
 .claude/
 comparison_outputs/
+heartoo.egg-info/
 
 docs/build
 docs/make.bat
