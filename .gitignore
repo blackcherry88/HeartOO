@@ -1,5 +1,6 @@
 
 *.pyc
+.venv/
 
 docs/build
 docs/make.bat
