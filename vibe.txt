@@ -1,0 +1,19 @@
+examine how heartpy in heartrate_analysis_python work, create md
+in .claude
+
+Next, I want to refactor it be good OO designs with patterns but keep functionalities
+Please consider to use well known design patterns like composite, inheritance, builder etc.
+
+You should ensure 
+1. put your designs in .claude
+2. put your code in heartoo
+3. put test cases in tests 
+4. when run python program always source .venv/bin/activate first
+5. design in such way, each class/component should have single responsibility
+6. main input and output match process in heartpy.heartrate_analysis_python
+    ie, we can get wd, m
+7. when use test data look at load_exampledata in heartpy, put the results in json files,
+, so we can comparing against heartpy.py
+
+8. ensure write a good test cases in pytests in tests folder
+9, write good docstring

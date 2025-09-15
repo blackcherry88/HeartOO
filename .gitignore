@@ -1,6 +1,9 @@
 
 *.pyc
+*.png
 .venv/
+.claude/
+comparison_outputs/
 
 docs/build
 docs/make.bat

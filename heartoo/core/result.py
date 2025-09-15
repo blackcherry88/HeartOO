@@ -1,0 +1,258 @@
+"""
+Analysis result classes for HeartOO.
+"""
+
+from typing import Dict, Any, List, Optional, Union, Tuple
+import numpy as np
+from copy import deepcopy
+
+
+class AnalysisResult:
+    """Class to store and manage heart rate analysis results."""
+    
+    def __init__(self):
+        """Initialize an empty analysis result."""
+        self._measures = {}
+        self._working_data = {}
+        self._segments = []
+        
+    @property
+    def measures(self) -> Dict[str, Any]:
+        """Get all analysis measures.
+        
+        Returns
+        -------
+        dict
+            All calculated measures
+        """
+        return self._measures
+    
+    @property
+    def working_data(self) -> Dict[str, Any]:
+        """Get all working data.
+        
+        Returns
+        -------
+        dict
+            All intermediate working data
+        """
+        return self._working_data
+    
+    @property
+    def segments(self) -> List['AnalysisResult']:
+        """Get segment results for segmented analysis.
+        
+        Returns
+        -------
+        list of AnalysisResult
+            Results for each segment
+        """
+        return self._segments
+        
+    def set_measure(self, key: str, value: Any) -> None:
+        """Set a specific measure.
+        
+        Parameters
+        ----------
+        key : str
+            The measure name
+        value : any
+            The measure value
+        """
+        self._measures[key] = value
+        
+    def get_measure(self, key: str, default: Any = None) -> Any:
+        """Get a specific measure.
+        
+        Parameters
+        ----------
+        key : str
+            The measure name
+        default : any, optional
+            Default value if measure doesn't exist
+            
+        Returns
+        -------
+        any
+            The measure value or default
+        """
+        return self._measures.get(key, default)
+        
+    def set_working_data(self, key: str, value: Any) -> None:
+        """Set specific working data.
+        
+        Parameters
+        ----------
+        key : str
+            The data name
+        value : any
+            The data value
+        """
+        self._working_data[key] = value
+        
+    def get_working_data(self, key: str, default: Any = None) -> Any:
+        """Get specific working data.
+        
+        Parameters
+        ----------
+        key : str
+            The data name
+        default : any, optional
+            Default value if data doesn't exist
+            
+        Returns
+        -------
+        any
+            The data value or default
+        """
+        return self._working_data.get(key, default)
+        
+    def add_segment(self, segment: 'AnalysisResult') -> None:
+        """Add a segment result.
+        
+        Parameters
+        ----------
+        segment : AnalysisResult
+            The segment result to add
+        """
+        self._segments.append(segment)
+        
+    def get_measures_by_category(self, category: str) -> Dict[str, Any]:
+        """Get measures by category prefix.
+        
+        Parameters
+        ----------
+        category : str
+            The category prefix (e.g., 'hrv_' for HRV measures)
+            
+        Returns
+        -------
+        dict
+            Measures in the specified category
+        """
+        return {k: v for k, v in self._measures.items() 
+                if k.startswith(category)}
+                
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert result to dictionary.
+        
+        Returns
+        -------
+        dict
+            Dictionary containing all measures and working data
+        """
+        result = {
+            'measures': deepcopy(self._measures),
+            'working_data': deepcopy(self._working_data)
+        }
+        
+        if self._segments:
+            result['segments'] = [s.to_dict() for s in self._segments]
+            
+        return result
+    
+    def get_time_series_measures(self) -> Dict[str, Any]:
+        """Get time-domain HRV measures.
+        
+        Returns
+        -------
+        dict
+            Time-domain HRV measures
+        """
+        return {
+            'bpm': self.get_measure('bpm'),
+            'ibi': self.get_measure('ibi'),
+            'sdnn': self.get_measure('sdnn'),
+            'sdsd': self.get_measure('sdsd'),
+            'rmssd': self.get_measure('rmssd'),
+            'pnn20': self.get_measure('pnn20'),
+            'pnn50': self.get_measure('pnn50'),
+            'hr_mad': self.get_measure('hr_mad')
+        }
+    
+    def get_frequency_measures(self) -> Dict[str, Any]:
+        """Get frequency-domain HRV measures.
+        
+        Returns
+        -------
+        dict
+            Frequency-domain HRV measures
+        """
+        return {
+            'lf': self.get_measure('lf'),
+            'hf': self.get_measure('hf'),
+            'lf/hf': self.get_measure('lf/hf'),
+            'vlf': self.get_measure('vlf'),
+            'p_total': self.get_measure('p_total'),
+            'vlf_perc': self.get_measure('vlf_perc'),
+            'lf_perc': self.get_measure('lf_perc'),
+            'hf_perc': self.get_measure('hf_perc'),
+            'lf_nu': self.get_measure('lf_nu'),
+            'hf_nu': self.get_measure('hf_nu')
+        }
+    
+    def get_nonlinear_measures(self) -> Dict[str, Any]:
+        """Get nonlinear (Poincaré) HRV measures.
+        
+        Returns
+        -------
+        dict
+            Nonlinear HRV measures
+        """
+        return {
+            'sd1': self.get_measure('sd1'),
+            'sd2': self.get_measure('sd2'),
+            's': self.get_measure('s'),
+            'sd1/sd2': self.get_measure('sd1/sd2')
+        }
+    
+    def get_breathing_measures(self) -> Dict[str, Any]:
+        """Get breathing measures.
+        
+        Returns
+        -------
+        dict
+            Breathing measures
+        """
+        return {
+            'breathingrate': self.get_measure('breathingrate')
+        }
+    
+    def merge_from(self, other: 'AnalysisResult') -> None:
+        """Merge data from another AnalysisResult.
+        
+        Parameters
+        ----------
+        other : AnalysisResult
+            The result to merge from
+        """
+        # Merge measures
+        self._measures.update(other.measures)
+        
+        # Merge working data
+        self._working_data.update(other.working_data)
+        
+        # Append segments (if any)
+        if other.segments:
+            self._segments.extend(other.segments)
+    
+    @classmethod
+    def from_heartpy_output(cls, working_data: Dict[str, Any], measures: Dict[str, Any]) -> 'AnalysisResult':
+        """Create an AnalysisResult from HeartPy output.
+        
+        Parameters
+        ----------
+        working_data : dict
+            HeartPy working_data dictionary
+        measures : dict
+            HeartPy measures dictionary
+            
+        Returns
+        -------
+        AnalysisResult
+            New AnalysisResult containing the HeartPy data
+        """
+        result = cls()
+        result._measures = deepcopy(measures)
+        result._working_data = deepcopy(working_data)
+        return result
