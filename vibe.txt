@@ -1,19 +1,17 @@
-examine how heartpy in heartrate_analysis_python work, create md
-in .claude
+examine how heartoo and heartpy in heartrate_analysis_python work
+heartoo is reimplement in oo for heartpy.
+you can refere mds in .claude for information
 
-Next, I want to refactor it be good OO designs with patterns but keep functionalities
-Please consider to use well known design patterns like composite, inheritance, builder etc.
+Next, I want to refactor heartoo to heartsw swift package in same good oo design
+
+you should put implementations and tests all in swift docstring
 
 You should ensure 
-1. put your designs in .claude
-2. put your code in heartoo
-3. put test cases in tests 
-4. when run python program always source .venv/bin/activate first
-5. design in such way, each class/component should have single responsibility
-6. main input and output match process in heartpy.heartrate_analysis_python
-    ie, we can get wd, m
-7. when use test data look at load_exampledata in heartpy, put the results in json files,
-, so we can comparing against heartpy.py
-
-8. ensure write a good test cases in pytests in tests folder
-9, write good docstring
+1. put your designs for swift in .claude
+2. put your swift code in heartsw
+3. put test cases in heartsw/tests
+4. write scripts in heartsw, we can easily build and run 
+5. compare heartsw implementation results against heartpy, 
+you should consider saving both heartsw and heartpy results in json
+and leaverage result.py in heartoo for comparison.
+5. when run python program always source .venv/bin/activate first

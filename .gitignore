@@ -3,6 +3,7 @@
 *.png
 .venv/
 .claude/
+.build/
 comparison_outputs/
 heartoo.egg-info/
 vibe.txt
