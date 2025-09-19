@@ -5,6 +5,8 @@ Analysis result classes for HeartOO.
 from typing import Dict, Any, List, Optional, Union, Tuple
 import numpy as np
 from copy import deepcopy
+import json
+from pathlib import Path
 
 
 class AnalysisResult:
@@ -235,6 +237,158 @@ class AnalysisResult:
         # Append segments (if any)
         if other.segments:
             self._segments.extend(other.segments)
+    
+    def save_to_json(self, filepath: Union[str, Path]) -> None:
+        """Save analysis result to JSON file.
+        
+        Parameters
+        ----------
+        filepath : str or Path
+            Path to save the JSON file
+        """
+        data = self.to_dict()
+        # Convert numpy arrays to lists for JSON serialization
+        data = self._convert_numpy_for_json(data)
+        
+        with open(filepath, 'w') as f:
+            json.dump(data, f, indent=2)
+    
+    @classmethod
+    def load_from_json(cls, filepath: Union[str, Path]) -> 'AnalysisResult':
+        """Load analysis result from JSON file.
+        
+        Parameters
+        ----------
+        filepath : str or Path
+            Path to the JSON file
+            
+        Returns
+        -------
+        AnalysisResult
+            Loaded analysis result
+        """
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        
+        result = cls()
+        result._measures = data.get('measures', {})
+        result._working_data = data.get('working_data', {})
+        
+        # Load segments if present
+        if 'segments' in data:
+            for segment_data in data['segments']:
+                segment = cls()
+                segment._measures = segment_data.get('measures', {})
+                segment._working_data = segment_data.get('working_data', {})
+                result._segments.append(segment)
+        
+        return result
+    
+    def compare_with(self, other: 'AnalysisResult', tolerance: float = 1e-6) -> Dict[str, Any]:
+        """Compare this result with another result.
+        
+        Parameters
+        ----------
+        other : AnalysisResult
+            The other result to compare with
+        tolerance : float, optional
+            Tolerance for numerical comparisons
+            
+        Returns
+        -------
+        dict
+            Comparison results with differences
+        """
+        comparison = {
+            'measures_diff': {},
+            'measures_only_in_self': [],
+            'measures_only_in_other': [],
+            'identical_measures': [],
+            'different_measures': []
+        }
+        
+        # Compare measures
+        all_keys = set(self._measures.keys()) | set(other._measures.keys())
+        
+        for key in all_keys:
+            if key not in self._measures:
+                comparison['measures_only_in_other'].append(key)
+            elif key not in other._measures:
+                comparison['measures_only_in_self'].append(key)
+            else:
+                val1, val2 = self._measures[key], other._measures[key]
+                if self._values_equal(val1, val2, tolerance):
+                    comparison['identical_measures'].append(key)
+                else:
+                    comparison['different_measures'].append(key)
+                    comparison['measures_diff'][key] = {
+                        'self': val1,
+                        'other': val2,
+                        'diff': self._calculate_diff(val1, val2)
+                    }
+        
+        return comparison
+    
+    @staticmethod
+    def compare_json_files(file1: Union[str, Path], file2: Union[str, Path], tolerance: float = 1e-6) -> Dict[str, Any]:
+        """Compare two JSON result files.
+        
+        Parameters
+        ----------
+        file1 : str or Path
+            Path to first JSON file
+        file2 : str or Path
+            Path to second JSON file
+        tolerance : float, optional
+            Tolerance for numerical comparisons
+            
+        Returns
+        -------
+        dict
+            Comparison results
+        """
+        result1 = AnalysisResult.load_from_json(file1)
+        result2 = AnalysisResult.load_from_json(file2)
+        return result1.compare_with(result2, tolerance)
+    
+    def _convert_numpy_for_json(self, obj: Any) -> Any:
+        """Convert numpy arrays to lists for JSON serialization."""
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, dict):
+            return {k: self._convert_numpy_for_json(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._convert_numpy_for_json(item) for item in obj]
+        return obj
+    
+    def _values_equal(self, val1: Any, val2: Any, tolerance: float) -> bool:
+        """Check if two values are equal within tolerance."""
+        try:
+            if isinstance(val1, (int, float)) and isinstance(val2, (int, float)):
+                return abs(val1 - val2) <= tolerance
+            elif isinstance(val1, (list, np.ndarray)) and isinstance(val2, (list, np.ndarray)):
+                arr1, arr2 = np.array(val1), np.array(val2)
+                return arr1.shape == arr2.shape and np.allclose(arr1, arr2, atol=tolerance)
+            else:
+                return val1 == val2
+        except:
+            return val1 == val2
+    
+    def _calculate_diff(self, val1: Any, val2: Any) -> Any:
+        """Calculate difference between two values."""
+        try:
+            if isinstance(val1, (int, float)) and isinstance(val2, (int, float)):
+                return val2 - val1
+            elif isinstance(val1, (list, np.ndarray)) and isinstance(val2, (list, np.ndarray)):
+                return (np.array(val2) - np.array(val1)).tolist()
+            else:
+                return f"'{val1}' vs '{val2}'"
+        except:
+            return f"'{val1}' vs '{val2}'"
     
     @classmethod
     def from_heartpy_output(cls, working_data: Dict[str, Any], measures: Dict[str, Any]) -> 'AnalysisResult':
