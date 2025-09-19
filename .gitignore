@@ -5,6 +5,7 @@
 .claude/
 comparison_outputs/
 heartoo.egg-info/
+vibe.txt
 
 docs/build
 docs/make.bat
