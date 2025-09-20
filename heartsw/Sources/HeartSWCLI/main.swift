@@ -46,6 +46,7 @@ Process Options:
     --sample-rate <rate>     Sample rate in Hz (required)
     --min-bpm <bpm>         Minimum heart rate (default: 40)
     --max-bpm <bpm>         Maximum heart rate (default: 180)
+    --threshold-percentage <pct>  Threshold percentage for peak detection (default: 20)
     --output <file.json>    Output file for results (optional)
 
 Example:
@@ -73,6 +74,7 @@ Example:
         // Parse optional parameters
         var minBPM = 40.0
         var maxBPM = 180.0
+        var thresholdPercentage = 20.0
         var outputFile: String?
 
         var i = 1
@@ -86,6 +88,11 @@ Example:
             case "--max-bpm":
                 if let value = Double(args[i + 1]) {
                     maxBPM = value
+                }
+                i += 2
+            case "--threshold-percentage":
+                if let value = Double(args[i + 1]) {
+                    thresholdPercentage = value
                 }
                 i += 2
             case "--output":
@@ -102,7 +109,8 @@ Example:
             let result = try HeartSW.processFile(at: url,
                                                sampleRate: sampleRate,
                                                minBPM: minBPM,
-                                               maxBPM: maxBPM)
+                                               maxBPM: maxBPM,
+                                               thresholdPercentage: thresholdPercentage)
 
             // Print results to console
             printResults(result)

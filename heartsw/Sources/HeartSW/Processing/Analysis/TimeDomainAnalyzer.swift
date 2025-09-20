@@ -34,7 +34,20 @@ public struct TimeDomainAnalyzer: HeartRateProcessor {
     /// assert(measures["rmssd"] != nil)
     /// ```
     public func process(_ signal: HeartRateSignal, result: inout AnalysisResult) throws -> [String: Double] {
-        guard let intervals = signal.rrIntervals, !intervals.isEmpty else {
+        // Check for RR intervals in order of preference (HeartPy approach)
+        let intervals: [Double]
+        if let correctedIntervals: [Double] = result.getWorkingData("RR_list_cor", as: [Double].self),
+           !correctedIntervals.isEmpty {
+            // First preference: corrected intervals from peak validation
+            intervals = correctedIntervals
+        } else if let rawIntervals: [Double] = result.getWorkingData("RR_list", as: [Double].self),
+                  !rawIntervals.isEmpty {
+            // Second preference: raw RR intervals from peak detection
+            intervals = rawIntervals
+        } else if let signalIntervals = signal.rrIntervals, !signalIntervals.isEmpty {
+            // Third preference: signal intervals if peaks were set on signal
+            intervals = signalIntervals
+        } else {
             throw HRVError.noPeaksDetected
         }
 

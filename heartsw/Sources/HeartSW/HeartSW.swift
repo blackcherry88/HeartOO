@@ -37,25 +37,30 @@ public extension HeartSW {
     static func process(data: [Double],
                        sampleRate: Double,
                        minBPM: Double = 40,
-                       maxBPM: Double = 180) throws -> AnalysisResult {
+                       maxBPM: Double = 180,
+                       thresholdPercentage: Double = 20) throws -> AnalysisResult {
         // Create signal
         let signal = try HeartRateSignal(data: data, sampleRate: sampleRate)
 
-        // Create processing pipeline
-        let detector = AdaptiveThresholdDetector(minBPM: minBPM, maxBPM: maxBPM)
+        // Create processing pipeline (following HeartPy's approach)
+        let detector = AdaptiveThresholdDetector(minBPM: minBPM, maxBPM: maxBPM, thresholdPercentage: thresholdPercentage)
+        let validator = PeakValidator()
         let analyzer = TimeDomainAnalyzer()
 
         var result = AnalysisResult()
 
-        // Process: detect peaks then analyze
+        // Process: detect peaks, validate them, then analyze (HeartPy pipeline)
         let peaks = try detector.process(signal, result: &result)
 
-        // Update signal with peaks for analysis
+        // Update signal with peaks
         var signalWithPeaks = signal
         signalWithPeaks.setPeaks(peaks)
 
-        // Analyze time domain measures
-        _ = try analyzer.process(signalWithPeaks, result: &result)
+        // Validate peaks and mark outliers (HeartPy's check_peaks behavior)
+        let validatedSignal = try validator.process(signalWithPeaks, result: &result)
+
+        // Analyze time domain measures with validated data
+        _ = try analyzer.process(validatedSignal, result: &result)
 
         return result
     }
@@ -73,9 +78,10 @@ public extension HeartSW {
     static func processFile(at url: URL,
                            sampleRate: Double,
                            minBPM: Double = 40,
-                           maxBPM: Double = 180) throws -> AnalysisResult {
+                           maxBPM: Double = 180,
+                           thresholdPercentage: Double = 20) throws -> AnalysisResult {
         let data = try loadCSV(from: url)
-        return try process(data: data, sampleRate: sampleRate, minBPM: minBPM, maxBPM: maxBPM)
+        return try process(data: data, sampleRate: sampleRate, minBPM: minBPM, maxBPM: maxBPM, thresholdPercentage: thresholdPercentage)
     }
 
     /// Load data from CSV file
