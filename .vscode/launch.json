@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:HeartOO}/heartsw",
+            "name": "Debug HeartSWCLI (heartsw)",
+            "program": "${workspaceFolder:HeartOO}/heartsw/.build/debug/HeartSWCLI",
+            "preLaunchTask": "swift: Build Debug HeartSWCLI (heartsw)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:HeartOO}/heartsw",
+            "name": "Release HeartSWCLI (heartsw)",
+            "program": "${workspaceFolder:HeartOO}/heartsw/.build/release/HeartSWCLI",
+            "preLaunchTask": "swift: Build Release HeartSWCLI (heartsw)"
+        }
+    ]
+}
