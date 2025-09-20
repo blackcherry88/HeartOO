@@ -2,9 +2,6 @@
 
 import sys
 import numpy as np
-sys.path.append('/Volumes/workplace/personal/HeartOO/heartrate_analysis_python')
-sys.path.append('/Volumes/workplace/personal/HeartOO')
-
 import heartpy as hp
 import heartoo as ho
 
@@ -72,7 +69,7 @@ try:
     rr_intervals = wd_heartoo.get('RR_list', [])
     print(f"   📋 First 10 RR intervals: {[f'{x:.1f}' for x in rr_intervals[:10]]}")
     print(f"   📋 RR list length: {len(rr_intervals)}")
-    print(f"   📋 Mean RR: {np.mean(rr_intervals):.1f} ms" if rr_intervals else "No RR intervals")
+    print(f"   📋 Mean RR: {np.mean(rr_intervals):.1f} ms" if len(rr_intervals) > 0 else "No RR intervals")
 
 except Exception as e:
     print(f"   ❌ HeartOO Error: {e}")

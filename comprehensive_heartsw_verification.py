@@ -5,7 +5,6 @@ import json
 import subprocess
 import tempfile
 import os
-sys.path.append('/Volumes/workplace/personal/HeartOO/heartrate_analysis_python')
 
 import heartpy as hp
 import heartoo as ho

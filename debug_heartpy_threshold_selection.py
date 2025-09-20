@@ -2,8 +2,6 @@
 
 import sys
 import numpy as np
-sys.path.append('/Volumes/workplace/personal/HeartOO/heartrate_analysis_python')
-
 import heartpy as hp
 from heartpy.datautils import rolling_mean
 from heartpy.peakdetection import detect_peaks
